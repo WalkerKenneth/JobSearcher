@@ -1,0 +1,53 @@
+{
+  "profile_id": "lyfter-001",
+  "name": "Valentina Torres",
+  "cohort": "Lyfter-2025-Q1",
+  "stack": {
+    "primary": ["React", "JavaScript", "HTML", "CSS"],
+    "secondary": ["TypeScript", "Git"],
+    "tools": ["Figma", "VS Code", "GitHub"]
+  },
+  "seniority": "junior",
+  "location": {
+    "city": "San José",
+    "country": "Costa Rica",
+    "timezone": "America/Costa_Rica"
+  },
+  "modality": ["remote", "hybrid"],
+  "languages": [
+    {
+      "language": "Spanish",
+      "level": "native"
+    },
+    {
+      "language": "English",
+      "level": "intermediate"
+    }
+  ],
+  "availability": {
+    "start_date": "2026-06-01",
+    "hours_per_week": 40,
+    "type": "full-time"
+  },
+  "expected_salary": {
+    "min": 600000,
+    "max": 900000,
+    "currency": "CRC",
+    "period": "monthly"
+  },
+  "restrictions": {
+    "min_salary": 600000,
+    "currency": "CRC",
+    "excluded_modalities": ["on-site"],
+    "excluded_locations": [],
+    "requires_visa_sponsorship": false,
+    "max_travel_percent": 10
+  },
+  "preferences": {
+    "company_size": ["startup", "mid-size"],
+    "sectors": ["tech", "edtech", "fintech"],
+    "roles": ["Frontend Developer", "UI Developer", "React Developer"],
+    "avoid_sectors": ["gambling", "tobacco"],
+    "growth_priority": "learning"
+  }
+}

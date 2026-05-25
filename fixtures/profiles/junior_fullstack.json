@@ -1,0 +1,53 @@
+{
+  "profile_id": "lyfter-002",
+  "name": "Andrés Mejía",
+  "cohort": "Lyfter-2025-Q1",
+  "stack": {
+    "primary": ["Node.js", "Express", "JavaScript", "PostgreSQL"],
+    "secondary": ["React", "REST APIs", "Git", "Docker"],
+    "tools": ["Postman", "VS Code", "GitHub", "DBeaver"]
+  },
+  "seniority": "junior",
+  "location": {
+    "city": "Heredia",
+    "country": "Costa Rica",
+    "timezone": "America/Costa_Rica"
+  },
+  "modality": ["remote", "hybrid", "on-site"],
+  "languages": [
+    {
+      "language": "Spanish",
+      "level": "native"
+    },
+    {
+      "language": "English",
+      "level": "basic"
+    }
+  ],
+  "availability": {
+    "start_date": "2026-06-15",
+    "hours_per_week": 40,
+    "type": "full-time"
+  },
+  "expected_salary": {
+    "min": 750000,
+    "max": 1100000,
+    "currency": "CRC",
+    "period": "monthly"
+  },
+  "restrictions": {
+    "min_salary": 750000,
+    "currency": "CRC",
+    "excluded_modalities": [],
+    "excluded_locations": ["outside Costa Rica"],
+    "requires_visa_sponsorship": false,
+    "max_travel_percent": null
+  },
+  "preferences": {
+    "company_size": ["startup", "mid-size", "enterprise"],
+    "sectors": ["tech", "logistics", "healthtech"],
+    "roles": ["Backend Developer", "Node.js Developer", "Fullstack Developer"],
+    "avoid_sectors": ["gambling"],
+    "growth_priority": "stability"
+  }
+}
