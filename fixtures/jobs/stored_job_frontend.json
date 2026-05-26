@@ -1,0 +1,84 @@
+{
+  "_comment": "StoredJob canónico — oferta frontend via JSearch. Perfil: lyfter-001 Valentina Torres.",
+  "_source_file": "jsearch_raw_example.json → data[1] (Startup Tica S.A.)",
+
+  "job_id": "jsearch_cr_frontend_002",
+  "source": "jsearch",
+  "dedup_key": "a3f8e21b9c0d4e7f",
+  "canonical_id": null,
+  "duplicate_ids": [],
+
+  "first_seen": "2026-05-25T14:00:00Z",
+  "last_seen": "2026-05-25T14:00:00Z",
+  "fetched_at": "2026-05-25T14:00:00Z",
+  "fetch_count": 1,
+  "status": "active",
+  "is_active": true,
+
+  "job_title": "Desarrollador Frontend Junior (React/Vue)",
+  "company_name": "Startup Tica S.A.",
+  "location_city": "San José",
+  "location_country": "Costa Rica",
+  "is_remote": false,
+  "modality": ["hybrid"],
+  "apply_url": "https://cr.computrabajo.com/ofertas-de-trabajo/oferta-de-trabajo-de-desarrollador-frontend-junior-en-san-jose-A2B3C4D5",
+
+  "salary_min": 650000,
+  "salary_max": 850000,
+  "salary_currency": "CRC",
+  "salary_period": "monthly",
+
+  "posted_at": "2026-05-26T08:00:00Z",
+  "description_raw": "Únete a nuestra startup en crecimiento como desarrollador frontend junior. Requisitos: React o Vue.js (React preferido), JavaScript, HTML5, CSS3, Git. Ofrecemos: modalidad híbrida (3 días oficina / 2 remoto), seguro médico, plan dental. Salario: ₡650,000 – ₡850,000 mensuales según experiencia.",
+  "qualifications_raw": [],
+  "stack_keywords": ["React", "Vue.js", "JavaScript", "HTML5", "CSS3", "Git"],
+  "seniority_signal": "junior",
+
+  "_hard_filter_check": {
+    "_profile": "lyfter-001 Valentina Torres",
+    "modality_ok": true,
+    "_note": "Valentina acepta hybrid; modality=['hybrid'] pasa el filtro",
+    "salary_ok": true,
+    "_note_salary": "salary_min=650000 CRC ≥ restrictions.min_salary=600000 CRC",
+    "location_ok": true
+  },
+
+  "_score_preview": {
+    "_profile": "lyfter-001 Valentina Torres",
+    "stack_match": "React ✓, JavaScript ✓, HTML5 ✓, CSS3 ✓, Vue.js ✗ (no en perfil) → 4/5 = 28/35",
+    "seniority_match": "junior → 20/20",
+    "language_match": "inglés intermedio deseable (no requerido) → 15/15",
+    "sector": "tech startup (preferido) → 15/15",
+    "company_size": "startup (preferido) → 10/10",
+    "role_title": "Frontend → 5/5",
+    "total_estimated": 93
+  },
+
+  "raw_response": {
+    "job_id": "jsearch_cr_frontend_002",
+    "employer_name": "Startup Tica S.A.",
+    "employer_logo": null,
+    "employer_website": null,
+    "job_publisher": "Computrabajo",
+    "job_employment_type": "FULLTIME",
+    "job_title": "Desarrollador Frontend Junior (React/Vue)",
+    "job_apply_link": "https://cr.computrabajo.com/ofertas-de-trabajo/oferta-de-trabajo-de-desarrollador-frontend-junior-en-san-jose-A2B3C4D5",
+    "job_apply_is_direct": true,
+    "job_description": "Únete a nuestra startup en crecimiento como desarrollador frontend junior. Requisitos: React o Vue.js (React preferido), JavaScript, HTML5, CSS3, Git. Ofrecemos: modalidad híbrida (3 días oficina / 2 remoto), seguro médico, plan dental. Salario: ₡650,000 – ₡850,000 mensuales según experiencia.",
+    "job_is_remote": false,
+    "job_posted_at_timestamp": 1748304000,
+    "job_posted_at_datetime_utc": "2026-05-26T08:00:00Z",
+    "job_city": "San José",
+    "job_state": "San José",
+    "job_country": "CR",
+    "job_min_salary": 650000,
+    "job_max_salary": 850000,
+    "job_salary_currency": "CRC",
+    "job_salary_period": "MONTH",
+    "job_required_skills": ["React", "JavaScript", "HTML5", "CSS3", "Git"],
+    "job_highlights": {
+      "Qualifications": [],
+      "Benefits": ["Seguro médico", "Plan dental"]
+    }
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "_comment": "Respuesta cruda de SerpAPI (engine=google_jobs) para query: 'junior Backend Developer Node.js', location: 'Costa Rica', gl: 'cr', hl: 'es'",
+  "_profile": "lyfter-002 — Andrés Mejía",
+  "search_metadata": {
+    "id": "serpapi_cr_backend_search_001",
+    "status": "Success",
+    "created_at": "2026-05-25T14:30:00Z",
+    "total_time_taken": 1.42
+  },
+  "search_parameters": {
+    "engine": "google_jobs",
+    "q": "junior Backend Developer Node.js",
+    "location": "Costa Rica",
+    "gl": "cr",
+    "hl": "es",
+    "chips": "date_posted:month",
+    "api_key": "[REDACTED]"
+  },
+  "jobs_results": [
+    {
+      "title": "Desarrollador Backend Junior",
+      "company_name": "Startup Tica",
+      "location": "Heredia, Costa Rica",
+      "via": "LinkedIn",
+      "description": "Buscamos un desarrollador backend junior para trabajar con Node.js y PostgreSQL en nuestra plataforma de pagos. Responsabilidades: diseñar y mantener APIs REST, integrar servicios externos, escribir tests unitarios con Jest. Requisitos: Node.js 6+ meses de experiencia, PostgreSQL, manejo básico de Git. Ventajas: trabajo presencial en Heredia, seguro médico, horario flexible.",
+      "job_highlights": {
+        "Qualifications": [
+          "6 meses de experiencia en Node.js",
+          "Conocimiento de PostgreSQL",
+          "Manejo de REST APIs",
+          "Git y control de versiones"
+        ],
+        "Benefits": [
+          "Seguro médico",
+          "Horario flexible",
+          "Comedor subsidiado"
+        ],
+        "Responsibilities": [
+          "Diseñar y mantener APIs REST con Node.js",
+          "Integrar servicios externos (pagos, notificaciones)",
+          "Escribir tests unitarios con Jest"
+        ]
+      },
+      "apply_options": [
+        {
+          "title": "LinkedIn",
+          "link": "https://linkedin.com/jobs/view/backend-junior-startup-tica-heredia-789012"
+        }
+      ],
+      "detected_extensions": {
+        "posted_at": "hace 3 días",
+        "schedule_type": "Tiempo completo",
+        "work_from_home": false,
+        "salary": "₡750,000 – ₡1,100,000 al mes"
+      },
+      "job_id": "eyJqb2JfdGl0bGUiOiJEZXNhcnJvbGxhZG9yIEJhY2tlbmQgSnVuaW9yIiwiY29tcGFueV9uYW1lIjoiU3RhcnR1cCBUaWNhIn0="
+    },
+    {
+      "title": "Junior Node.js Developer – Fintech",
+      "company_name": "PayLink LATAM",
+      "location": "San José, Costa Rica",
+      "via": "Indeed",
+      "description": "PayLink LATAM busca desarrollador Node.js junior para equipo de integraciones. Trabajarás con Express.js, MongoDB y servicios AWS (Lambda, SQS). Conocimiento de Docker es un plus. Modalidad remota con contrato CR. Inglés básico requerido para documentación técnica.",
+      "job_highlights": {
+        "Qualifications": [
+          "Node.js y Express.js",
+          "MongoDB o cualquier base de datos NoSQL",
+          "Familiaridad con AWS (Lambda, SQS) es un plus",
+          "Inglés básico"
+        ],
+        "Benefits": [
+          "100% remoto",
+          "Contrato en colones",
+          "Equipo home office proveído"
+        ]
+      },
+      "apply_options": [
+        {
+          "title": "Indeed",
+          "link": "https://cr.indeed.com/viewjob?jk=abc123def456"
+        },
+        {
+          "title": "PayLink Careers",
+          "link": "https://paylink.lat/careers/node-junior"
+        }
+      ],
+      "detected_extensions": {
+        "posted_at": "hace 1 semana",
+        "schedule_type": "Tiempo completo",
+        "work_from_home": true,
+        "salary": null
+      },
+      "job_id": "eyJqb2JfdGl0bGUiOiJKdW5pb3IgTm9kZS5qcyBEZXZlbG9wZXIiLCJjb21wYW55X25hbWUiOiJQYXlMaW5rIExBVEFNIn0="
+    }
+  ]
+}

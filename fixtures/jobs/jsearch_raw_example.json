@@ -1,0 +1,111 @@
+{
+  "_comment": "Respuesta cruda de JSearch para query: 'junior Frontend Developer React', location: 'Costa Rica'",
+  "_profile": "lyfter-001 — Valentina Torres",
+  "status": "OK",
+  "request_id": "req_8f3a2b1c",
+  "parameters": {
+    "query": "junior Frontend Developer React",
+    "location": "Costa Rica",
+    "remote_jobs_only": false,
+    "date_posted": "month",
+    "num_pages": 2
+  },
+  "data": [
+    {
+      "job_id": "jsearch_cr_frontend_001",
+      "employer_name": "TechNova CR",
+      "employer_logo": "https://example.com/logos/technova.png",
+      "employer_website": "https://technova.cr",
+      "job_publisher": "LinkedIn",
+      "job_employment_type": "FULLTIME",
+      "job_title": "Junior Frontend Developer",
+      "job_apply_link": "https://linkedin.com/jobs/view/123456",
+      "job_apply_is_direct": false,
+      "job_description": "Buscamos un desarrollador frontend junior entusiasta para unirse a nuestro equipo en crecimiento. Trabajarás con React, JavaScript ES6+ y CSS para construir interfaces modernas. Se valorará experiencia con Git y metodologías ágiles. Inglés intermedio deseable. Modalidad: remoto con visitas ocasionales a la oficina en San José.",
+      "job_is_remote": true,
+      "job_posted_at_timestamp": 1748044800,
+      "job_posted_at_datetime_utc": "2026-05-21T08:00:00Z",
+      "job_city": "San José",
+      "job_state": "San José",
+      "job_country": "CR",
+      "job_latitude": 9.9281,
+      "job_longitude": -84.0907,
+      "job_benefits": null,
+      "job_google_link": "https://www.google.com/search?q=junior+frontend+react+costa+rica",
+      "job_offer_expiration_datetime_utc": "2026-06-27T08:00:00Z",
+      "job_required_experience": {
+        "no_experience_required": false,
+        "required_experience_in_months": 6,
+        "experience_mentioned": true,
+        "experience_preferred": false
+      },
+      "job_required_skills": null,
+      "job_required_education": {
+        "postgraduate_degree": false,
+        "professional_certification": false,
+        "high_school": true,
+        "associates_degree": false,
+        "bachelors_degree": true,
+        "degree_mentioned": true,
+        "degree_preferred": true,
+        "professional_degree": false
+      },
+      "job_highlights": {
+        "Qualifications": [],
+        "Benefits": []
+      },
+      "job_min_salary": null,
+      "job_max_salary": null,
+      "job_salary_currency": null,
+      "job_salary_period": null
+    },
+    {
+      "job_id": "jsearch_cr_frontend_002",
+      "employer_name": "Startup Tica S.A.",
+      "employer_logo": null,
+      "employer_website": null,
+      "job_publisher": "Computrabajo",
+      "job_employment_type": "FULLTIME",
+      "job_title": "Desarrollador Frontend Junior (React/Vue)",
+      "job_apply_link": "https://cr.computrabajo.com/ofertas-de-trabajo/oferta-de-trabajo-de-desarrollador-frontend-junior-en-san-jose-A2B3C4D5",
+      "job_apply_is_direct": true,
+      "job_description": "Únete a nuestra startup en crecimiento como desarrollador frontend junior. Requisitos: React o Vue.js (React preferido), JavaScript, HTML5, CSS3, Git. Ofrecemos: modalidad híbrida (3 días oficina / 2 remoto), seguro médico, plan dental. Salario: ₡650,000 – ₡850,000 mensuales según experiencia.",
+      "job_is_remote": false,
+      "job_posted_at_timestamp": 1747958400,
+      "job_posted_at_datetime_utc": "2026-05-20T08:00:00Z",
+      "job_city": "San José",
+      "job_state": "San José",
+      "job_country": "CR",
+      "job_latitude": 9.9281,
+      "job_longitude": -84.0907,
+      "job_benefits": ["Seguro médico", "Plan dental"],
+      "job_google_link": null,
+      "job_offer_expiration_datetime_utc": "2026-06-25T08:00:00Z",
+      "job_required_experience": {
+        "no_experience_required": true,
+        "required_experience_in_months": 0,
+        "experience_mentioned": false,
+        "experience_preferred": false
+      },
+      "job_required_skills": ["React", "JavaScript", "HTML5", "CSS3", "Git"],
+      "job_required_education": {
+        "postgraduate_degree": false,
+        "professional_certification": false,
+        "high_school": false,
+        "associates_degree": false,
+        "bachelors_degree": false,
+        "degree_mentioned": false,
+        "degree_preferred": false,
+        "professional_degree": false
+      },
+      "job_highlights": {
+        "Qualifications": [],
+        "Benefits": ["Seguro médico", "Plan dental"]
+      },
+      "job_min_salary": 650000,
+      "job_max_salary": 850000,
+      "job_salary_currency": "CRC",
+      "job_salary_period": "MONTH"
+    }
+  ]
+}

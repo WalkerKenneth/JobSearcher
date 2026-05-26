@@ -1,0 +1,94 @@
+{
+  "_comment": "Ejemplo de deduplicación cross-source: el mismo puesto 'Desarrollador Backend Junior' de Startup Tica aparece tanto en SerpAPI (canónico) como en JSearch (duplicado). El dedup_key coincide en ambos registros.",
+
+  "canonical_record": {
+    "_ref": "Ver stored_job_backend.json — este es el registro con más campos completos (qualifications_raw no vacío, salary estructurado, ciudad explícita).",
+    "job_id": "serpapi_cr_backend_b8e3f2a1",
+    "source": "serpapi",
+    "dedup_key": "c9d2f15a8b3e7042",
+    "canonical_id": null,
+    "duplicate_ids": ["jsearch_cr_backend_dup_001"],
+    "fetch_count": 1,
+    "status": "active",
+    "completeness_score": 10,
+    "_completeness_breakdown": {
+      "salary_min": 3,
+      "salary_max": 3,
+      "qualifications_raw_nonempty": 2,
+      "location_city_notnull": 1,
+      "stack_keywords_nonempty": 1
+    }
+  },
+
+  "duplicate_record": {
+    "_explanation": "Este registro apareció en JSearch con el mismo puesto y empresa pero sin qualifications_raw ni salary. El dedup_key (Nivel 3 — fuzzy) coincide con el canónico. Se almacena con canonical_id apuntando al registro SerpAPI.",
+    "job_id": "jsearch_cr_backend_dup_001",
+    "source": "jsearch",
+    "dedup_key": "c9d2f15a8b3e7042",
+    "canonical_id": "serpapi_cr_backend_b8e3f2a1",
+    "duplicate_ids": [],
+
+    "first_seen": "2026-05-25T15:00:00Z",
+    "last_seen": "2026-05-25T15:00:00Z",
+    "fetched_at": "2026-05-25T15:00:00Z",
+    "fetch_count": 1,
+    "status": "active",
+    "is_active": true,
+
+    "job_title": "Junior Backend Developer",
+    "company_name": "Startup Tica",
+    "location_city": null,
+    "location_country": "CR",
+    "is_remote": false,
+    "modality": ["on-site"],
+    "apply_url": "https://linkedin.com/jobs/view/backend-junior-startup-tica-heredia-789012",
+
+    "salary_min": null,
+    "salary_max": null,
+    "salary_currency": null,
+    "salary_period": null,
+
+    "posted_at": "2026-05-22T00:00:00Z",
+    "description_raw": "Startup Tica busca Junior Backend Developer con Node.js y PostgreSQL para plataforma de pagos. Git y APIs REST requeridos.",
+    "qualifications_raw": [],
+    "stack_keywords": ["Node.js", "PostgreSQL", "Git", "REST APIs"],
+    "seniority_signal": "junior",
+
+    "apply_url_normalized": "https://linkedin.com/jobs/view/backend-junior-startup-tica-heredia-789012",
+    "_dedup_note": "apply_url normalizada coincidió con Nivel 1 (URL exacta). Nivel 3 también habría coincidido: normalize('startup tica') + '|' + normalize('junior backend developer') + '|' + normalize('cr') → dedup_key='c9d2f15a8b3e7042'.",
+
+    "completeness_score": 2,
+    "_completeness_breakdown": {
+      "salary_min": 0,
+      "salary_max": 0,
+      "qualifications_raw_nonempty": 0,
+      "location_city_notnull": 0,
+      "stack_keywords_nonempty": 1,
+      "_note": "score=2 < canonical score=10 → este registro queda como duplicado"
+    },
+
+    "raw_response": {
+      "job_id": "jsearch_cr_backend_dup_001",
+      "employer_name": "Startup Tica",
+      "job_title": "Junior Backend Developer",
+      "job_apply_link": "https://linkedin.com/jobs/view/backend-junior-startup-tica-heredia-789012",
+      "job_is_remote": false,
+      "job_posted_at_datetime_utc": "2026-05-22T00:00:00Z",
+      "job_city": null,
+      "job_country": "CR",
+      "job_description": "Startup Tica busca Junior Backend Developer con Node.js y PostgreSQL para plataforma de pagos. Git y APIs REST requeridos.",
+      "job_min_salary": null,
+      "job_max_salary": null,
+      "job_salary_currency": null,
+      "job_salary_period": null,
+      "job_highlights": { "Qualifications": [] }
+    }
+  },
+
+  "dedup_resolution_log": {
+    "trigger": "Nivel 1 — apply_url normalizada ya existía en job_postings",
+    "action": "INSERT duplicate_record con canonical_id='serpapi_cr_backend_b8e3f2a1'",
+    "canonical_updated_fields": ["duplicate_ids"],
+    "timestamp": "2026-05-25T15:00:05Z"
+  }
+}

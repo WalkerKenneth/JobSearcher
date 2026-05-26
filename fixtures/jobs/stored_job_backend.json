@@ -1,0 +1,100 @@
+{
+  "_comment": "StoredJob canónico — oferta backend via SerpAPI. Perfil: lyfter-002 Andrés Mejía.",
+  "_source_file": "serpapi_raw_example.json → jobs_results[0] (Startup Tica)",
+
+  "job_id": "serpapi_cr_backend_b8e3f2a1",
+  "source": "serpapi",
+  "dedup_key": "c9d2f15a8b3e7042",
+  "canonical_id": null,
+  "duplicate_ids": [],
+
+  "first_seen": "2026-05-25T14:30:00Z",
+  "last_seen": "2026-05-25T14:30:00Z",
+  "fetched_at": "2026-05-25T14:30:00Z",
+  "fetch_count": 1,
+  "status": "active",
+  "is_active": true,
+
+  "job_title": "Desarrollador Backend Junior",
+  "company_name": "Startup Tica",
+  "location_city": "Heredia",
+  "location_country": "Costa Rica",
+  "is_remote": false,
+  "modality": ["on-site"],
+  "apply_url": "https://linkedin.com/jobs/view/backend-junior-startup-tica-heredia-789012",
+
+  "salary_min": 750000,
+  "salary_max": 1100000,
+  "salary_currency": "CRC",
+  "salary_period": "monthly",
+
+  "posted_at": "2026-05-22T00:00:00Z",
+  "_posted_at_note": "SerpAPI devolvió 'hace 3 días' → calculado respecto a fetched_at 2026-05-25",
+  "description_raw": "Buscamos un desarrollador backend junior para trabajar con Node.js y PostgreSQL en nuestra plataforma de pagos. Responsabilidades: diseñar y mantener APIs REST, integrar servicios externos, escribir tests unitarios con Jest. Requisitos: Node.js 6+ meses de experiencia, PostgreSQL, manejo básico de Git. Ventajas: trabajo presencial en Heredia, seguro médico, horario flexible.",
+  "qualifications_raw": [
+    "6 meses de experiencia en Node.js",
+    "Conocimiento de PostgreSQL",
+    "Manejo de REST APIs",
+    "Git y control de versiones"
+  ],
+  "stack_keywords": ["Node.js", "PostgreSQL", "REST APIs", "Git", "Jest"],
+  "seniority_signal": "junior",
+
+  "_hard_filter_check": {
+    "_profile": "lyfter-002 Andrés Mejía",
+    "modality_ok": true,
+    "_note": "Andrés acepta on-site; modality=['on-site'] no está en excluded_modalities",
+    "salary_ok": true,
+    "_note_salary": "salary_min=750000 CRC = restrictions.min_salary=750000 CRC (exactamente en el límite)",
+    "location_ok": true,
+    "_note_location": "location_country='Costa Rica'; restrictions.excluded_locations=['outside Costa Rica']"
+  },
+
+  "_score_preview": {
+    "_profile": "lyfter-002 Andrés Mejía",
+    "stack_match": "Node.js ✓, PostgreSQL ✓, REST APIs ✓, Git ✓ → 4/4 = 35/35",
+    "seniority_match": "junior → 20/20",
+    "language_match": "no requisito de inglés → 15/15",
+    "sector": "fintech/startup (preferido) → 15/15",
+    "company_size": "startup (no top preference; growth_priority=stability → mid-size/enterprise preferido) → 0/10",
+    "role_title": "Backend → 5/5",
+    "penalty_salary": "salary_min=750000 = expected_salary.min (no penalización)",
+    "growth_priority_adjustment": "stability → empresa es startup, sin bonus de +10",
+    "total_estimated": 90
+  },
+
+  "raw_response": {
+    "title": "Desarrollador Backend Junior",
+    "company_name": "Startup Tica",
+    "location": "Heredia, Costa Rica",
+    "via": "LinkedIn",
+    "description": "Buscamos un desarrollador backend junior para trabajar con Node.js y PostgreSQL en nuestra plataforma de pagos. Responsabilidades: diseñar y mantener APIs REST, integrar servicios externos, escribir tests unitarios con Jest. Requisitos: Node.js 6+ meses de experiencia, PostgreSQL, manejo básico de Git. Ventajas: trabajo presencial en Heredia, seguro médico, horario flexible.",
+    "job_highlights": {
+      "Qualifications": [
+        "6 meses de experiencia en Node.js",
+        "Conocimiento de PostgreSQL",
+        "Manejo de REST APIs",
+        "Git y control de versiones"
+      ],
+      "Benefits": ["Seguro médico", "Horario flexible", "Comedor subsidiado"],
+      "Responsibilities": [
+        "Diseñar y mantener APIs REST con Node.js",
+        "Integrar servicios externos (pagos, notificaciones)",
+        "Escribir tests unitarios con Jest"
+      ]
+    },
+    "apply_options": [
+      {
+        "title": "LinkedIn",
+        "link": "https://linkedin.com/jobs/view/backend-junior-startup-tica-heredia-789012"
+      }
+    ],
+    "detected_extensions": {
+      "posted_at": "hace 3 días",
+      "schedule_type": "Tiempo completo",
+      "work_from_home": false,
+      "salary": "₡750,000 – ₡1,100,000 al mes"
+    },
+    "job_id": "eyJqb2JfdGl0bGUiOiJEZXNhcnJvbGxhZG9yIEJhY2tlbmQgSnVuaW9yIiwiY29tcGFueV9uYW1lIjoiU3RhcnR1cCBUaWNhIn0="
+  }
+}
