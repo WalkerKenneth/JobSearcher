@@ -21,16 +21,16 @@ Un agente que:
 
 ## Subtareas
 
-| #   | Nombre                                                       | Estado        | Artefactos                                                                                                           |
-| --- | ------------------------------------------------------------ | ------------- | -------------------------------------------------------------------------------------------------------------------- |
+| #   | Nombre                                                       | Estado        | Artefactos                                                                                                          |
+| --- | ------------------------------------------------------------ | ------------- | ------------------------------------------------------------------------------------------------------------------- |
 | 1   | Definir perfil del candidato y criterios de match            | ✅ Completada | [spec](docs/specs/student-profile-spec.md) · [rúbrica](docs/specs/match-rubric.md) · [fixtures](fixtures/profiles/) |
-| 2   | Spike de soluciones existentes para búsqueda de empleo       | ✅ Completada | [spike](docs/spikes/job-search-tools-spike.md)                                                                       |
-| 3   | Evaluar OpenClaw vs Hermes para orquestación del agente      | ✅ Completada | [ADR-001](docs/decisions/adr-001-orchestration.md) · [flujo mínimo](docs/spikes/orchestration-minimal-flow/)         |
-| 4   | Spike de APIs y fuentes para obtener oportunidades laborales | ✅ Completada | [spec](docs/specs/job-sources-spec.md)                                                                               |
-| 5   | Diseñar pipeline de ingesta, normalización y almacenamiento  | ✅ Completada | [spec](docs/specs/job-storage-spec.md) · [fixtures](fixtures/jobs/)                                                  |
-| 6   | Implementar POC de ingesta de oportunidades laborales        | ✅ Completada | [backend/](backend/) — `ingest.py`, `JobFetcher`, `JobNormalizer`, `JobRepository`, 53 tests                         |
-| 7   | Implementar scoring y curación de oportunidades              | ⬜ Pendiente  | —                                                                                                                    |
-| 8   | Definir flujo de entrega y feedback para recomendaciones     | ⬜ Pendiente  | —                                                                                                                    |
+| 2   | Spike de soluciones existentes para búsqueda de empleo       | ✅ Completada | [spike](docs/spikes/job-search-tools-spike.md)                                                                      |
+| 3   | Evaluar OpenClaw vs Hermes para orquestación del agente      | ✅ Completada | [ADR-001](docs/decisions/adr-001-orchestration.md) · [flujo mínimo](docs/spikes/orchestration-minimal-flow/)        |
+| 4   | Spike de APIs y fuentes para obtener oportunidades laborales | ✅ Completada | [spec](docs/specs/job-sources-spec.md)                                                                              |
+| 5   | Diseñar pipeline de ingesta, normalización y almacenamiento  | ✅ Completada | [spec](docs/specs/job-storage-spec.md) · [fixtures](fixtures/jobs/)                                                 |
+| 6   | Implementar POC de ingesta de oportunidades laborales        | ✅ Completada | [backend/](backend/) — `ingest.py`, `JobFetcher`, `JobNormalizer`, `JobRepository`, 53 tests                        |
+| 7   | Implementar scoring y curación de oportunidades              | ⬜ Pendiente  | —                                                                                                                   |
+| 8   | Definir flujo de entrega y feedback para recomendaciones     | ⬜ Pendiente  | —                                                                                                                   |
 
 ---
 
