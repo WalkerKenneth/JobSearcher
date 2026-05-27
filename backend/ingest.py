@@ -19,13 +19,23 @@ from pathlib import Path
 # Ensure backend/ is in sys.path when executed from any cwd
 sys.path.insert(0, str(Path(__file__).parent))
 
+import dataclasses
+
 from app.ingestion.fetcher import fetch_jsearch
 from app.ingestion.normalizer import normalize_jsearch_batch, validate_job
 from app.ingestion.query_builder import build_jsearch_params
 from app.ingestion.repository import upsert_jobs
+from app.profiles.repository import load_profile
 
 
-def _load_profile(path: str) -> dict:
+def _load_profile(path: str | None, profile_id: str | None) -> dict:
+    if profile_id:
+        profile = load_profile(profile_id)
+        if profile is None:
+            print(f"Error: perfil '{profile_id}' no encontrado en la base de datos.")
+            print("Importa el perfil primero: python profiles.py import <archivo.json>")
+            sys.exit(1)
+        return dataclasses.asdict(profile)
     p = Path(path)
     if not p.exists():
         print(f"Error: profile not found: {p}")
@@ -41,7 +51,14 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Ingest job postings for a Lyfter student profile.",
     )
-    parser.add_argument("profile", help="Path to a StudentProfile JSON file")
+    parser.add_argument(
+        "profile", nargs="?", default=None,
+        help="Ruta a un JSON de StudentProfile (o usa --profile-id)",
+    )
+    parser.add_argument(
+        "--profile-id", metavar="ID",
+        help="ID del perfil almacenado en la base de datos",
+    )
     parser.add_argument(
         "--no-cache",
         action="store_true",
@@ -54,7 +71,10 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    profile = _load_profile(args.profile)
+    if not args.profile and not args.profile_id:
+        parser.error("Proporciona un archivo de perfil o usa --profile-id <id>")
+
+    profile = _load_profile(args.profile, args.profile_id)
 
     _print_separator("=")
     print("JobSearcher — Ingesta de Oportunidades (subtarea 6)")

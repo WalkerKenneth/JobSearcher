@@ -12,6 +12,31 @@ class Base(DeclarativeBase):
     pass
 
 
+class Profile(Base):
+    __tablename__ = "profiles"
+
+    profile_id = Column(Text, primary_key=True)
+    name = Column(Text, nullable=False)
+    cohort = Column(Text, nullable=False, default="")
+    seniority = Column(Text, nullable=False)
+    modality = Column(Text, nullable=False, default="[]")
+
+    stack = Column(Text, nullable=False, default="{}")
+    location = Column(Text, nullable=False, default="{}")
+    languages = Column(Text, nullable=False, default="[]")
+    availability = Column(Text, nullable=False, default="{}")
+    expected_salary = Column(Text, nullable=False, default="{}")
+    restrictions = Column(Text, nullable=False, default="{}")
+    preferences = Column(Text, nullable=False, default="{}")
+
+    created_at = Column(Text, nullable=False)
+    updated_at = Column(Text, nullable=False)
+
+    __table_args__ = (
+        CheckConstraint("seniority IN ('junior', 'mid')", name="ck_profile_seniority"),
+    )
+
+
 class JobPosting(Base):
     __tablename__ = "job_postings"
 

@@ -21,11 +21,19 @@ sys.path.insert(0, str(Path(__file__).parent))
 from app.delivery.payload import build_recommendations
 from app.delivery.repository import save_recommendations
 from app.ingestion.repository import load_active_jobs
+from app.profiles.repository import load_profile as load_profile_from_db
 from app.schemas import StudentProfile
 from app.scoring.scorer import rank_jobs
 
 
-def _load_profile(path: str) -> StudentProfile:
+def _load_profile(path: str | None, profile_id: str | None) -> StudentProfile:
+    if profile_id:
+        profile = load_profile_from_db(profile_id)
+        if profile is None:
+            print(f"Error: perfil '{profile_id}' no encontrado en la base de datos.")
+            print("Importa el perfil primero: python profiles.py import <archivo.json>")
+            sys.exit(1)
+        return profile
     p = Path(path)
     if not p.exists():
         print(f"Error: perfil no encontrado: {p}")
@@ -61,7 +69,14 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="Generar recomendaciones de empleo para un perfil Lyfter.",
     )
-    parser.add_argument("profile", help="Ruta al JSON del StudentProfile")
+    parser.add_argument(
+        "profile", nargs="?", default=None,
+        help="Ruta al JSON del StudentProfile (o usa --profile-id)",
+    )
+    parser.add_argument(
+        "--profile-id", metavar="ID",
+        help="ID del perfil almacenado en la base de datos",
+    )
     parser.add_argument(
         "--top", type=int, default=10, metavar="N",
         help="Número máximo de recomendaciones (default: 10)",
@@ -72,7 +87,10 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    profile = _load_profile(args.profile)
+    if not args.profile and not args.profile_id:
+        parser.error("Proporciona un archivo de perfil o usa --profile-id <id>")
+
+    profile = _load_profile(args.profile, args.profile_id)
 
     _print_separator("=")
     print("JobSearcher — Recomendaciones (subtarea 8)")

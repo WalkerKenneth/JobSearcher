@@ -1,7 +1,7 @@
 # Spec: Almacenamiento y Normalización de Ofertas (`StoredJob`)
 
-**Versión:** 1.0  
-**Fecha:** 2026-05-25  
+**Versión:** 1.1  
+**Fecha:** 2026-05-26  
 **Autor:** Equipo Lyfter  
 **Estado:** Aprobado  
 **Subtarea:** 5 — Almacenamiento y normalización de oportunidades  
@@ -100,6 +100,33 @@ interface StoredJob {
 - Se necesitan búsquedas full-text en `description_raw` con ranking (PostgreSQL `tsvector`)
 
 ### 3.2 Tablas
+
+#### Tabla `profiles`
+
+Almacena los perfiles de estudiantes. Las estructuras anidadas (`stack`, `location`, etc.) se serializan como JSON text para mantener consistencia con el resto del esquema SQLite.
+
+```sql
+CREATE TABLE IF NOT EXISTS profiles (
+    profile_id      TEXT PRIMARY KEY,
+    name            TEXT NOT NULL,
+    cohort          TEXT NOT NULL DEFAULT '',
+    seniority       TEXT NOT NULL CHECK(seniority IN ('junior', 'mid')),
+    modality        TEXT NOT NULL DEFAULT '[]',        -- JSON array
+
+    stack           TEXT NOT NULL DEFAULT '{}',        -- JSON: {primary, secondary, tools}
+    location        TEXT NOT NULL DEFAULT '{}',        -- JSON: {city, country, timezone}
+    languages       TEXT NOT NULL DEFAULT '[]',        -- JSON: [{language, level}]
+    availability    TEXT NOT NULL DEFAULT '{}',        -- JSON: {start_date, hours_per_week, type}
+    expected_salary TEXT NOT NULL DEFAULT '{}',        -- JSON: {min, max, currency, period}
+    restrictions    TEXT NOT NULL DEFAULT '{}',        -- JSON: hard filters del estudiante
+    preferences     TEXT NOT NULL DEFAULT '{}',        -- JSON: nice-to-have del estudiante
+
+    created_at      TEXT NOT NULL,                     -- ISO 8601
+    updated_at      TEXT NOT NULL                      -- ISO 8601 — se actualiza en cada upsert
+);
+```
+
+Ver [student-profile-spec.md](student-profile-spec.md) para el esquema completo de campos y la API del repository.
 
 #### Tabla `job_postings`
 
@@ -334,10 +361,18 @@ Un `NormalizedJob` proveniente del `JobFetcher` debe pasar estas validaciones an
 
 ---
 
-## 8. Próximos Pasos
+## 8. Estado de Implementación
 
-1. Implementar `JobRepository` (SQLAlchemy + SQLite) con métodos `upsert`, `find_by_dedup_key`, `find_by_url`, `mark_expired`.
-2. Integrar `build_dedup_key` en el `JobNormalizer` antes del paso de escritura.
-3. Implementar `update_freshness_status` como tarea periódica (cron diario) sobre todos los jobs `active` y `stale`.
-4. Agregar migración inicial con `alembic` para tener `upgrade/downgrade` auditables.
-5. Conectar `raw_snapshots` al pipeline de auditoría para permitir re-procesamiento de señales LLM sin re-fetching.
+| Item | Estado |
+|------|--------|
+| `JobRepository` — `upsert`, dedup 3 niveles, `load_active_jobs` | ✅ Implementado |
+| `build_dedup_key` integrado en `JobNormalizer` | ✅ Implementado |
+| `profiles` table + `ProfileRepository` | ✅ Implementado |
+| `profiles.py` CLI (import, list, show, delete) | ✅ Implementado |
+| `ingest.py` y `recommend.py` con `--profile-id` | ✅ Implementado |
+
+## 9. Próximos Pasos
+
+1. Implementar `update_freshness_status` como tarea periódica (cron diario) sobre todos los jobs `active` y `stale`.
+2. Agregar migración inicial con `alembic` para tener `upgrade/downgrade` auditables.
+3. Conectar `raw_snapshots` al pipeline de auditoría para permitir re-procesamiento de señales LLM sin re-fetching.

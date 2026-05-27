@@ -3,6 +3,7 @@
 ## Propósito
 
 Define el contrato de datos que describe a un estudiante de Lyfter para ser usado en:
+- Persistencia en la base de datos (`profiles` table) y gestión vía `profiles.py`
 - Prompts al agente de búsqueda
 - Algoritmo de scoring/ranking de ofertas
 - Fixtures de prueba
@@ -129,6 +130,50 @@ Una lista rankeada de oportunidades, donde cada ítem incluye:
   "action": "string"
 }
 ```
+
+---
+
+---
+
+## Persistencia en Base de Datos
+
+Los perfiles se almacenan en la tabla `profiles` de `data/jobs.db` (misma base de datos que las ofertas). Las estructuras anidadas (`stack`, `location`, `languages`, etc.) se serializan como JSON text, consistente con el resto del esquema.
+
+### Gestión de perfiles (`profiles.py`)
+
+```bash
+# Importar desde JSON (primera carga o actualización)
+python3 profiles.py import fixtures/profiles/junior_frontend.json
+
+# Listar todos los perfiles
+python3 profiles.py list
+
+# Ver detalle completo
+python3 profiles.py show lyfter-001
+
+# Eliminar
+python3 profiles.py delete lyfter-001
+```
+
+### Repository API (`app/profiles/repository.py`)
+
+| Función | Descripción |
+|---------|-------------|
+| `upsert_profile(profile)` | Inserta o actualiza un perfil; devuelve `'inserted'` / `'updated'` |
+| `load_profile(profile_id)` | Retorna `StudentProfile` o `None` si no existe |
+| `list_profiles()` | Lista todos los perfiles ordenados por nombre |
+| `delete_profile(profile_id)` | Elimina el perfil; devuelve `True` si existía |
+
+### Uso desde otros CLIs
+
+`ingest.py` y `recommend.py` aceptan el perfil desde la base de datos con `--profile-id`:
+
+```bash
+python3 ingest.py --profile-id lyfter-001
+python3 recommend.py --profile-id lyfter-001
+```
+
+La carga desde archivo JSON sigue funcionando para compatibilidad y flujos de prueba.
 
 ---
 

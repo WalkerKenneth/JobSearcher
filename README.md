@@ -30,7 +30,7 @@ Un agente que:
 | 5   | Diseñar pipeline de ingesta, normalización y almacenamiento  | ✅ Completada | [spec](docs/specs/job-storage-spec.md) · [fixtures](fixtures/jobs/)                                                 |
 | 6   | Implementar POC de ingesta de oportunidades laborales        | ✅ Completada | [backend/](backend/) — `ingest.py`, `JobFetcher`, `JobNormalizer`, `JobRepository`                                  |
 | 7   | Implementar scoring y curación de oportunidades              | ✅ Completada | [scorer.py](backend/app/scoring/scorer.py) — filtros obligatorios + score 0–100                                     |
-| 8   | Definir flujo de entrega y feedback para recomendaciones     | ✅ Completada | [delivery/](backend/app/delivery/) — `recommend.py`, `feedback.py`, 138 tests                                       |
+| 8   | Definir flujo de entrega y feedback para recomendaciones     | ✅ Completada | [delivery/](backend/app/delivery/) — `recommend.py`, `feedback.py`, 146 tests                                       |
 
 ---
 
@@ -43,9 +43,11 @@ JobSearcher/
 │   │   ├── config.py                      # Variables de entorno (DATABASE_URL, JSEARCH_API_KEY)
 │   │   ├── schemas.py                     # NormalizedJob, StudentProfile, dataclasses compartidas
 │   │   ├── db/
-│   │   │   ├── models.py                  # SQLAlchemy: job_postings, raw_snapshots, query_cache,
-│   │   │   │                              #             recommendations, feedback_events
+│   │   │   ├── models.py                  # SQLAlchemy: profiles, job_postings, raw_snapshots,
+│   │   │   │                              #             query_cache, recommendations, feedback_events
 │   │   │   └── session.py                 # Engine SQLite + creación de tablas e índices
+│   │   ├── profiles/
+│   │   │   └── repository.py             # upsert_profile, load_profile, list_profiles, delete_profile
 │   │   ├── ingestion/
 │   │   │   ├── query_builder.py           # StudentProfile → parámetros de API JSearch
 │   │   │   ├── fetcher.py                 # HTTP JSearch + caché 24h + retry exponencial
@@ -60,24 +62,26 @@ JobSearcher/
 │   │       └── repository.py             # Upsert recomendaciones + record_feedback()
 │   ├── tests/
 │   │   ├── conftest.py                    # Fixtures compartidos: profile, jobs, DB en memoria
+│   │   ├── test_profiles.py               # Upsert, load, list, delete de perfiles
 │   │   ├── test_normalizer.py             # Normalización de campos, URL, seniority, stack
 │   │   ├── test_deduplication.py          # Dedup niveles 1/2/3 + idempotencia
 │   │   ├── test_ingestion.py             # Pipeline completo con fixtures
 │   │   ├── test_scorer.py                 # Hard filters + scoring por dimensión + rank_jobs
 │   │   └── test_delivery.py               # build_payload, save_recommendations, record_feedback
-│   ├── ingest.py                          # CLI: ingestar ofertas desde API
-│   ├── recommend.py                       # CLI: generar recomendaciones para un perfil
+│   ├── ingest.py                          # CLI: ingestar ofertas (acepta archivo JSON o --profile-id)
+│   ├── recommend.py                       # CLI: generar recomendaciones (acepta archivo JSON o --profile-id)
 │   ├── feedback.py                        # CLI: registrar feedback del estudiante
+│   ├── profiles.py                        # CLI: gestionar perfiles en la base de datos
 │   ├── requirements.txt
 │   └── .env.example
 ├── docs/
 │   ├── decisions/
 │   │   └── adr-001-orchestration.md       # Decisión de capa de orquestación
 │   ├── specs/
-│   │   ├── student-profile-spec.md        # Contrato de datos del perfil
+│   │   ├── student-profile-spec.md        # Contrato de datos del perfil + persistencia en DB
 │   │   ├── match-rubric.md                # Rúbrica de compatibilidad
 │   │   ├── job-sources-spec.md            # APIs de empleo: comparativa y NormalizedJob
-│   │   ├── job-storage-spec.md            # Schema StoredJob, dedup y almacenamiento
+│   │   ├── job-storage-spec.md            # Schema StoredJob, dedup, almacenamiento y tabla profiles
 │   │   └── delivery-feedback-spec.md      # Flujo de entrega y ciclo de feedback
 │   └── spikes/
 │       ├── job-search-tools-spike.md      # Evaluación de herramientas existentes
@@ -85,8 +89,8 @@ JobSearcher/
 │           └── minimal_flow.py            # Prueba del pipeline end-to-end
 ├── fixtures/
 │   ├── profiles/
-│   │   ├── junior_frontend.json           # Perfil de prueba: frontend
-│   │   └── junior_fullstack.json          # Perfil de prueba: fullstack/backend
+│   │   ├── junior_frontend.json           # Perfil de prueba: frontend (Valentina Torres)
+│   │   └── junior_fullstack.json          # Perfil de prueba: fullstack/backend (Andrés Mejía)
 │   └── jobs/
 │       ├── jsearch_raw_example.json       # Respuesta raw de JSearch
 │       ├── serpapi_raw_example.json       # Respuesta raw de SerpAPI
@@ -132,80 +136,103 @@ JSEARCH_API_KEY=tu_api_key_aqui
 DATABASE_URL=sqlite:///data/jobs.db   # valor por defecto, no requiere cambio
 ```
 
-### 3. Ingestar ofertas laborales
+### 3. Importar perfiles a la base de datos
 
-El comando `ingest.py` consulta la API de JSearch usando el perfil del estudiante, normaliza las ofertas y las guarda en la base de datos local (`data/jobs.db`).
+Los perfiles de estudiantes se gestionan en la misma base de datos que las ofertas (`data/jobs.db`). Los archivos JSON en `fixtures/profiles/` sirven como fuente inicial o para pruebas.
 
 ```bash
-# Ingesta estándar con perfil de prueba
+# Importar un perfil desde JSON
+python3 profiles.py import ../fixtures/profiles/junior_frontend.json
+python3 profiles.py import ../fixtures/profiles/junior_fullstack.json
+
+# Ver todos los perfiles almacenados
+python3 profiles.py list
+
+# Ver detalle de un perfil
+python3 profiles.py show lyfter-001
+
+# Eliminar un perfil
+python3 profiles.py delete lyfter-001
+```
+
+### 4. Ingestar ofertas laborales
+
+`ingest.py` consulta la API de JSearch usando el perfil del estudiante, normaliza las ofertas y las guarda en `data/jobs.db`. Acepta el perfil como archivo JSON (compatibilidad) o por ID desde la base de datos.
+
+```bash
+# Usando perfil almacenado en DB (recomendado)
+python3 ingest.py --profile-id lyfter-001
+
+# Usando archivo JSON directamente (compatible con versiones anteriores)
 python3 ingest.py ../fixtures/profiles/junior_frontend.json
 
 # Dry-run: muestra resultados sin escribir en BD
-python3 ingest.py ../fixtures/profiles/junior_frontend.json --dry-run
+python3 ingest.py --profile-id lyfter-001 --dry-run
 
 # Forzar llamada a API ignorando caché de 24h
-python3 ingest.py ../fixtures/profiles/junior_frontend.json --no-cache
-
-# Usar perfil fullstack/backend
-python3 ingest.py ../fixtures/profiles/junior_fullstack.json
+python3 ingest.py --profile-id lyfter-001 --no-cache
 ```
 
-### 4. Generar recomendaciones
+### 5. Generar recomendaciones
 
 `recommend.py` carga los jobs almacenados, aplica filtros obligatorios, calcula el score 0–100 para cada oferta y guarda las recomendaciones en la BD y en `data/recommendations_<profile_id>.json`.
 
 ```bash
-# Recomendaciones en formato tabla (default)
-python3 recommend.py ../fixtures/profiles/junior_frontend.json
+# Usando perfil almacenado en DB (recomendado)
+python3 recommend.py --profile-id lyfter-001
 
 # Limitar a top 5
-python3 recommend.py ../fixtures/profiles/junior_frontend.json --top 5
+python3 recommend.py --profile-id lyfter-001 --top 5
 
 # Salida en JSON
-python3 recommend.py ../fixtures/profiles/junior_frontend.json --format json
+python3 recommend.py --profile-id lyfter-001 --format json
+
+# Usando archivo JSON directamente
+python3 recommend.py ../fixtures/profiles/junior_frontend.json
 ```
 
 **Ejemplo de salida:**
 
 ```
 ════════════════════════════════════════════════════════════
-TOP 5 RECOMENDACIONES — Valentina Morales
+TOP 5 RECOMENDACIONES — Valentina Torres
 ════════════════════════════════════════════════════════════
 #01  Frontend Developer
      Acme Corp  |  Remoto (Chile)
      Score: [████████████████░░░░]  82
      Acción: Aplicar de inmediato
      ✓ Stack: react, typescript (2/3); Seniority compatible
-     ID: valentina_001_jsearch_abc123
+     ID: lyfter-001_jsearch_abc123
 ```
 
-### 5. Registrar feedback
+### 6. Registrar feedback
 
 ```bash
 # Marcar como aplicada
-python3 feedback.py valentina_001_jsearch_abc123 applied
+python3 feedback.py lyfter-001_jsearch_abc123 applied
 
 # Descartar con nota
-python3 feedback.py valentina_001_jsearch_abc123 discarded --note "Sector gambling"
+python3 feedback.py lyfter-001_jsearch_abc123 discarded --note "Sector gambling"
 
 # Marcar como vista y ver historial
-python3 feedback.py valentina_001_jsearch_abc123 seen --history
+python3 feedback.py lyfter-001_jsearch_abc123 seen --history
 
 # Estados disponibles: recommended | seen | applied | discarded | needs_coach
 ```
 
-### 6. Correr tests
+### 7. Correr tests
 
 ```bash
 # Todos los tests
 python3 -m pytest tests/ -v
 
 # Tests por módulo
+python3 -m pytest tests/test_profiles.py -v
 python3 -m pytest tests/test_scorer.py -v
 python3 -m pytest tests/test_delivery.py -v
 python3 -m pytest tests/test_normalizer.py -v
 
-# Con reporte de cobertura
+# Resumen rápido
 python3 -m pytest tests/ --tb=short -q
 ```
 
@@ -214,17 +241,30 @@ python3 -m pytest tests/ --tb=short -q
 ## Flujo completo
 
 ```
-fixtures/profiles/junior_frontend.json
-        │
-        ▼
-   ingest.py  ──→  JSearch API  ──→  normalizar  ──→  data/jobs.db
-        │
-        ▼
- recommend.py  ──→  score 0–100  ──→  data/recommendations_*.json
-                                             │
-                                             ▼
-                                       feedback.py  ──→  feedback_events en BD
+fixtures/profiles/*.json  ──▶  profiles.py import  ──▶  profiles (DB)
+                                                               │
+                                                               ▼
+                                                          ingest.py  ──▶  JSearch API  ──▶  normalizar  ──▶  job_postings (DB)
+                                                               │
+                                                               ▼
+                                                        recommend.py  ──▶  score 0–100  ──▶  recommendations (DB)
+                                                                                                      │
+                                                                                                      ▼
+                                                                                              feedback.py  ──▶  feedback_events (DB)
 ```
+
+### Base de datos (`data/jobs.db`)
+
+Todas las entidades viven en SQLite. Las tablas son:
+
+| Tabla | Contenido |
+|-------|-----------|
+| `profiles` | Perfiles de estudiantes con stack, restricciones y preferencias |
+| `job_postings` | Ofertas normalizadas con deduplicación en 3 niveles |
+| `raw_snapshots` | Respuestas crudas de API para auditoría |
+| `query_cache` | Caché de 24h de resultados de JSearch |
+| `recommendations` | Resultados del ranking para cada perfil |
+| `feedback_events` | Historial de acciones del estudiante o coach |
 
 ---
 
