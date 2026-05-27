@@ -281,6 +281,83 @@ def load_active_jobs(session: Session | None = None) -> list[NormalizedJob]:
         return _query(s)
 
 
+def list_all_jobs(session: Session | None = None) -> list[dict]:
+    """Return all canonical job postings as display-ready dicts, newest first."""
+    def _query(s: Session) -> list[dict]:
+        rows = s.execute(
+            select(JobPosting)
+            .where(JobPosting.canonical_id == None)  # noqa: E711
+            .order_by(JobPosting.last_seen.desc())
+        ).scalars().all()
+        return [
+            {
+                "job_id": r.job_id,
+                "source": r.source,
+                "job_title": r.job_title,
+                "company_name": r.company_name,
+                "location_city": r.location_city,
+                "location_country": r.location_country,
+                "is_remote": bool(r.is_remote),
+                "status": r.status,
+                "seniority_signal": r.seniority_signal,
+                "stack_keywords": json.loads(r.stack_keywords),
+                "apply_url": r.apply_url,
+                "salary_min": r.salary_min,
+                "salary_max": r.salary_max,
+                "salary_currency": r.salary_currency,
+                "salary_period": r.salary_period,
+                "last_seen": r.last_seen,
+                "fetch_count": r.fetch_count,
+                "duplicate_ids": json.loads(r.duplicate_ids),
+            }
+            for r in rows
+        ]
+
+    if session is not None:
+        return _query(session)
+    with SessionLocal() as s:
+        return _query(s)
+
+
+def load_job(job_id: str, session: Session | None = None) -> dict | None:
+    """Return full details of a single job posting, or None if not found."""
+    def _query(s: Session) -> dict | None:
+        row = s.get(JobPosting, job_id)
+        if row is None:
+            return None
+        return {
+            "job_id": row.job_id,
+            "source": row.source,
+            "job_title": row.job_title,
+            "company_name": row.company_name,
+            "location_city": row.location_city,
+            "location_country": row.location_country,
+            "is_remote": bool(row.is_remote),
+            "modality": json.loads(row.modality),
+            "status": row.status,
+            "seniority_signal": row.seniority_signal,
+            "stack_keywords": json.loads(row.stack_keywords),
+            "apply_url": row.apply_url,
+            "salary_min": row.salary_min,
+            "salary_max": row.salary_max,
+            "salary_currency": row.salary_currency,
+            "salary_period": row.salary_period,
+            "posted_at": row.posted_at,
+            "last_seen": row.last_seen,
+            "first_seen": row.first_seen,
+            "fetch_count": row.fetch_count,
+            "canonical_id": row.canonical_id,
+            "duplicate_ids": json.loads(row.duplicate_ids),
+            "qualifications_raw": json.loads(row.qualifications_raw),
+            "description_raw": row.description_raw,
+        }
+
+    if session is not None:
+        return _query(session)
+    with SessionLocal() as s:
+        return _query(s)
+
+
 # ---------------------------------------------------------------------------
 # Batch upsert (creates its own session)
 # ---------------------------------------------------------------------------
