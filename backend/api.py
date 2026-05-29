@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""FastAPI REST API — serves job and recommendation data to the React frontend.
+"""FastAPI REST API for JobSearcher.
 
 Usage:
     uvicorn api:app --reload --port 8000
@@ -12,7 +12,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from fastapi import FastAPI, HTTPException, Query, Request
-from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from app.delivery.repository import get_recommendations, record_feedback
@@ -21,13 +20,6 @@ from app.profiles.repository import delete_profile, list_profiles, load_profile,
 from app.schemas import StudentProfile
 
 app = FastAPI(title="JobSearcher API", version="0.1.0")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 
 @app.get("/api/jobs")
