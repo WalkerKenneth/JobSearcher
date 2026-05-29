@@ -64,7 +64,7 @@ El resto del pipeline es lógica de negocio determinística.
 
 ---
 
-### Opción B — Hermes
+### Opción B — Hermes `[RECOMENDADA]`
 
 **Perfil:** Capa de mensajería y orquestación de tareas basada en eventos. Diseñada para flujos asíncronos donde las tareas se encolan, se distribuyen a workers y se monitorean. Más cerca de un job queue con capacidades de workflow.
 
@@ -75,17 +75,17 @@ El resto del pipeline es lógica de negocio determinística.
 | **Logs** | Trazabilidad por evento; requiere instrumentación adicional para correlacionar pasos del pipeline |
 | **Autorización** | Las credenciales de APIs externas viven en los workers — correcto para aislamiento |
 | **Retries** | Retry nativo por tarea con dead-letter queue |
-| **Despliegue** | Requiere broker de mensajes (Redis, RabbitMQ) + workers; más infra que una API HTTP |
-| **Mantenimiento** | El flujo se expresa como handlers independientes — más modular, pero más archivos/piezas |
+| **Despliegue** | Requiere broker de mensajes (Redis, RabbitMQ) + workers; infra separada del backend HTTP |
+| **Mantenimiento** | El flujo se expresa como handlers independientes — modular y desacoplado |
 | **Costo** | Costo de infraestructura del broker; sin costo de plataforma propia |
 
-**Fortaleza:** Buen fit si el agente necesita ejecutarse en segundo plano (async), procesar múltiples estudiantes en paralelo, o desacoplar completamente el frontend del backend.
+**Fortaleza:** Permite ejecutar el pipeline en segundo plano (async), procesar múltiples estudiantes en paralelo, y desacoplar completamente el ingreso de solicitudes del procesamiento. Cada paso del pipeline (QueryBuilder, JobFetcher, Normalizer, Scorer) puede convertirse en un handler independiente, facilitando retries granulares y monitoreo por etapa.
 
-**Debilidad para el MVP:** El overhead de configurar un broker de mensajes + workers + dead-letter queues es excesivo para un MVP con 20-30 estudiantes. La complejidad operativa es alta para el valor que aporta en esta etapa.
+**Consideración de despliegue:** Requiere un broker de mensajes (Redis recomendado por simplicidad operativa). El overhead inicial se justifica por la capacidad de escalar horizontalmente sin cambios en la lógica de negocio.
 
 ---
 
-### Opción C — Claude API (Anthropic SDK) + Backend Tradicional `[RECOMENDADA]`
+### Opción C — Claude API (Anthropic SDK) + Backend Tradicional
 
 **Perfil:** Llamadas directas al API de Claude para los pasos que requieren razonamiento LLM; el resto del pipeline es código Python puro en un backend HTTP (FastAPI). Sin frameworks de orquestación de terceros.
 
@@ -102,7 +102,7 @@ El resto del pipeline es lógica de negocio determinística.
 
 **Fortaleza:** Mínima superficie de riesgo, máxima legibilidad. El pipeline es código explícito — cualquier ingeniero puede seguirlo sin conocer un framework de orquestación.
 
-**Consideración de escala:** Si el sistema crece a cientos de estudiantes concurrentes o necesita múltiples agentes especializados, migrar a Hermes (colas async) es un cambio aditivo, no una reescritura.
+**Limitación:** El procesamiento es sincrónico — un estudiante bloquea el hilo mientras JSearch responde. No escala a múltiples estudiantes concurrentes sin refactoring significativo.
 
 ---
 
@@ -110,15 +110,16 @@ El resto del pipeline es lógica de negocio determinística.
 
 | Criterio | OpenClaw | Hermes | Claude API + FastAPI |
 |----------|----------|--------|---------------------|
-| **Manejo de tools** | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| **Estado / memoria** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
-| **Logs / trazabilidad** | ⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ |
-| **Autorización** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| **Manejo de tools** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| **Estado / memoria** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
+| **Logs / trazabilidad** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| **Autorización** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
 | **Retries** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
 | **Despliegue (simplicidad)** | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| **Mantenimiento** | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| **Mantenimiento** | ⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
 | **Costo operativo** | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| **Fit con el flujo actual** | ⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| **Escalabilidad** | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
+| **Procesamiento concurrente** | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐ |
 
 ---
 
@@ -184,16 +185,18 @@ El error más común en sistemas LLM es hacer que el agente haga *demasiado*. La
 
 ## Decisión Final
 
-**Opción C — Claude API (Anthropic SDK) + Backend Tradicional (FastAPI)**
+**Opción B — Hermes (orquestación por eventos + colas async)**
 
 **Por qué:**
-1. El flujo es un pipeline lineal, no un grafo de agentes — OpenClaw y Hermes añaden complejidad sin valor en esta etapa.
-2. Solo 2 pasos requieren LLM; el resto es lógica determinística que se testea con unit tests normales.
-3. FastAPI + Anthropic SDK se despliegan en cualquier servidor en menos de una hora — sin plataformas adicionales.
-4. El backend actúa como guardia de seguridad: valida inputs, gestiona credenciales, aplica rate limits antes de que el LLM vea cualquier dato.
-5. Si el sistema crece, agregar Hermes como capa de colas es un cambio aditivo sobre este mismo backend.
+1. El pipeline de JobSearcher tiene pasos claramente delimitados (QueryBuilder → Fetcher → Normalizer → Scorer → Delivery) — cada uno puede convertirse en un handler de Hermes con responsabilidad única.
+2. Hermes permite procesar múltiples estudiantes en paralelo sin cambios en la lógica de negocio: cada solicitud se encola y los workers la consumen de forma independiente.
+3. El retry nativo por tarea con dead-letter queue elimina código de resiliencia manual — `tenacity` no es necesario en el `JobFetcher`.
+4. Las credenciales de APIs externas (JSearch, SerpAPI) viven exclusivamente en los workers, nunca expuestas al frontend ni al LLM.
+5. El desacople entre productor (FastAPI recibe la solicitud) y consumidor (workers procesan el pipeline) permite escalar los workers de forma independiente sin tocar la API HTTP.
 
-**Condición de revisión:** Si el cohort supera 100 estudiantes concurrentes o el agente necesita coordinar múltiples fuentes de datos en paralelo, revisar la adopción de Hermes para el `JobFetcher`.
+**Infraestructura requerida:** Redis como broker (recomendado por simplicidad; RabbitMQ como alternativa si se requiere routing más complejo).
+
+**Condición de revisión:** Si el sistema se reduce a un script de línea de comandos para uso individual (1 estudiante a la vez, sin concurrencia), el overhead de Hermes no se justifica y se recomienda volver a Opción C.
 
 ---
 
@@ -201,34 +204,41 @@ El error más común en sistemas LLM es hacer que el agente haga *demasiado*. La
 
 ```mermaid
 sequenceDiagram
-    participant UI as Frontend / Ipsum
-    participant API as FastAPI Backend
+    participant UI as Frontend
+    participant API as FastAPI (Productor)
+    participant Broker as Redis Broker
+    participant W1 as Worker: Fetcher
+    participant W2 as Worker: Normalizer+Scorer
     participant Claude as Claude API
-    participant JSearch as JSearch API
 
     UI->>API: POST /search { student_profile }
-
     Note over API: Validación y sanitización del perfil
+    API->>Broker: ENQUEUE search_task { profile_id, query_params }
+    API-->>UI: 202 Accepted { task_id }
 
-    API->>API: QueryBuilder<br/>perfil → parámetros de búsqueda
-    API->>JSearch: GET /search?query=...&location=...
-    JSearch-->>API: raw jobs []
+    Broker->>W1: search_task
+    W1->>W1: QueryBuilder → JSearchParams
+    W1->>W1: JobFetcher (HTTP + retry nativo Hermes)
+    W1->>Broker: ENQUEUE normalize_task { raw_jobs[] }
 
-    API->>API: JobNormalizer → NormalizedJob[]
-    API->>API: HardFilterEngine → jobs_passed[]
-    API->>API: ScoringEngine → scored_jobs[]
+    Broker->>W2: normalize_task
+    W2->>W2: JobNormalizer → NormalizedJob[]
+    W2->>W2: HardFilterEngine → jobs_passed[]
+    W2->>W2: ScoringEngine → scored_jobs[]
 
-    Note over API,Claude: Solo 2 llamadas al LLM por pipeline
+    Note over W2,Claude: Solo 2 llamadas al LLM por pipeline
 
     loop Por cada job (top 10)
-        API->>Claude: ExtractJobSignals(job_description)
-        Claude-->>API: { stack: [], seniority: "junior" }
-        API->>API: Recalcular stack_match con señales extraídas
+        W2->>Claude: ExtractJobSignals(job_description)
+        Claude-->>W2: { stack: [], seniority: "junior" }
     end
 
-    API->>Claude: GenerateAction(top_matches, student_profile_subset)
-    Claude-->>API: { match_reasons[], gaps[], action: "..." }
+    W2->>Claude: GenerateAction(top_matches, student_profile_subset)
+    Claude-->>W2: { match_reasons[], gaps[], action: "..." }
 
+    W2->>Broker: PUBLISH task_complete { task_id, ranked_jobs[] }
+
+    UI->>API: GET /results/{ task_id }
     API-->>UI: RankedJobList con match_score y acciones
 ```
 
