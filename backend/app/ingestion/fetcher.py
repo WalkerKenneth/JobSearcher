@@ -1,18 +1,16 @@
-"""JobFetcher: calls JSearch API with 24h caching, retry, and rate-limit handling."""
+"""JobFetcher: calls JSearch API with 24h caching and HTTP error handling."""
 
 import hashlib
 import json
+import logging
+import time
 from datetime import datetime, timedelta, timezone
 
 import httpx
-from tenacity import (
-    retry,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_exponential,
-)
 
 from app.config import JSEARCH_API_KEY, JOB_CACHE_TTL_SECONDS
+
+log = logging.getLogger(__name__)
 
 
 class RateLimitError(Exception):
@@ -62,69 +60,74 @@ def _set_cached(key: str, data: list[dict]) -> None:
 
 
 # ---------------------------------------------------------------------------
-# JSearch HTTP call with tenacity retry
+# JSearch HTTP call — 3 intentos con backoff exponencial para errores de red.
+# Los rate limits (429) se propagan inmediatamente: Celery gestiona el retry
+# a nivel de tarea con countdown mayor que el backoff interno de red.
 # ---------------------------------------------------------------------------
 
-@retry(
-    retry=retry_if_exception_type((RateLimitError, httpx.ConnectError, httpx.TimeoutException)),
-    wait=wait_exponential(multiplier=2, min=5, max=60),
-    stop=stop_after_attempt(3),
-    reraise=True,
-)
+_NETWORK_ERRORS = (httpx.ConnectError, httpx.TimeoutException, httpx.ReadTimeout)
+_RETRY_WAITS = (5, 10, 20)  # segundos entre intentos de red
+
+
 def _call_jsearch(params: dict) -> list[dict]:
     if not JSEARCH_API_KEY:
         raise ValueError("JSEARCH_API_KEY is not set — add it to .env")
 
-    with httpx.Client(timeout=30.0) as client:
-        response = client.get(
-            "https://jsearch.p.rapidapi.com/search",
-            params=params,
-            headers={
-                "X-RapidAPI-Key": JSEARCH_API_KEY,
-                "X-RapidAPI-Host": "jsearch.p.rapidapi.com",
-            },
-        )
+    last_exc: Exception | None = None
+    for attempt, wait in enumerate(_RETRY_WAITS, start=1):
+        try:
+            with httpx.Client(timeout=30.0) as client:
+                response = client.get(
+                    "https://jsearch.p.rapidapi.com/search",
+                    params=params,
+                    headers={
+                        "X-RapidAPI-Key": JSEARCH_API_KEY,
+                        "X-RapidAPI-Host": "jsearch.p.rapidapi.com",
+                    },
+                )
 
-    if response.status_code == 429:
-        retry_after = int(response.headers.get("Retry-After", "10"))
-        print(f"  [rate-limit] JSearch 429 — waiting {retry_after}s before retry")
-        raise RateLimitError(f"Rate limit exceeded (Retry-After: {retry_after}s)")
+            if response.status_code == 429:
+                retry_after = int(response.headers.get("Retry-After", "60"))
+                log.warning("JSearch 429 rate limit (intento %d/%d), Retry-After: %ds",
+                            attempt, len(_RETRY_WAITS), retry_after)
+                raise RateLimitError(f"Rate limit — Retry-After: {retry_after}s")
 
-    response.raise_for_status()
-    return response.json().get("data", [])
+            response.raise_for_status()
+            return response.json().get("data", [])
+
+        except RateLimitError:
+            raise  # No reintentar aquí: Celery schedula retry con countdown apropiado
+
+        except _NETWORK_ERRORS as exc:
+            last_exc = exc
+            log.warning("JSearch error de red (intento %d/%d): %s — reintentando en %ds",
+                        attempt, len(_RETRY_WAITS), exc, wait)
+            if attempt < len(_RETRY_WAITS):
+                time.sleep(wait)
+
+    raise last_exc  # type: ignore[misc]
 
 
 def fetch_jsearch(params: dict, use_cache: bool = True) -> list[dict]:
     """
-    Fetch jobs from JSearch. Returns raw job dicts.
-    Caches results for JOB_CACHE_TTL_SECONDS to avoid burning rate-limit quota.
-    Returns [] on empty results, rate-limit exhaustion, or network errors.
+    Busca empleos en JSearch. Devuelve lista de dicts crudos.
+    Cachea resultados por JOB_CACHE_TTL_SECONDS para no consumir cuota.
+
+    Lanza RateLimitError, httpx.HTTPStatusError o ConnectionError en caso de fallo
+    para que Celery gestione retries a nivel de tarea.
     """
     key = _cache_key(params)
 
     if use_cache:
         cached = _get_cached(key)
         if cached is not None:
-            print(f"  [cache-hit] {len(cached)} jobs from cache (key: {key[:8]}…)")
+            log.info("Cache hit: %d empleos (key: %s…)", len(cached), key[:8])
             return cached
 
-    try:
-        results = _call_jsearch(params)
-    except RateLimitError:
-        print("  [WARNING] JSearch rate limit exhausted after retries — returning []")
-        return []
-    except httpx.HTTPStatusError as exc:
-        print(f"  [WARNING] JSearch HTTP {exc.response.status_code}: {exc}")
-        return []
-    except (httpx.ConnectError, httpx.TimeoutException) as exc:
-        print(f"  [WARNING] JSearch network error: {exc}")
-        return []
-    except ValueError as exc:
-        print(f"  [ERROR] {exc}")
-        raise
+    results = _call_jsearch(params)
 
     if results:
         _set_cached(key, results)
-        print(f"  [cache-set] {len(results)} jobs stored (TTL: {JOB_CACHE_TTL_SECONDS}s)")
+        log.info("Obtenidos y cacheados %d empleos (TTL: %ds)", len(results), JOB_CACHE_TTL_SECONDS)
 
     return results

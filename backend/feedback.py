@@ -20,17 +20,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from app.delivery.payload import VALID_STATUSES
-from app.delivery.repository import get_feedback_events, get_recommendations, record_feedback
-
-
-def _list_recommendations(profile_id: str) -> None:
-    recs = get_recommendations(profile_id)
-    if not recs:
-        print(f"Sin recomendaciones para el perfil '{profile_id}'.")
-        return
-    print(f"\nRecomendaciones para '{profile_id}':")
-    for r in recs:
-        print(f"  [{r['status']:12s}] score={r['match_score']:3d}  {r['rec_id']}")
+from app.delivery.repository import get_feedback_events, record_feedback
 
 
 def main() -> None:
@@ -57,9 +47,7 @@ def main() -> None:
 
     if not success:
         print(f"Error: recomendación '{args.rec_id}' no encontrada.")
-        profile_id = args.rec_id.split("_")[0] if "_" in args.rec_id else ""
-        if profile_id:
-            _list_recommendations(profile_id)
+        print("Usa 'python recommend.py --profile-id <id>' para listar tus recomendaciones.")
         sys.exit(1)
 
     print(f"✓ Feedback registrado: '{args.rec_id}' → {args.status}")

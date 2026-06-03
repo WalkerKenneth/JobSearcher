@@ -10,10 +10,13 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+
+log = logging.getLogger(__name__)
 
 from app.db.models import JobPosting, RawSnapshot
 from app.db.session import SessionLocal  # module-level so monkeypatch can replace it in tests
@@ -359,6 +362,38 @@ def load_job(job_id: str, session: Session | None = None) -> dict | None:
 
 
 # ---------------------------------------------------------------------------
+# Batch load by IDs (used by the API to avoid N+1 queries)
+# ---------------------------------------------------------------------------
+
+def load_jobs_by_ids(job_ids: list[str], session: Session | None = None) -> list[dict]:
+    """Return display-ready dicts for the given job IDs in a single query."""
+    if not job_ids:
+        return []
+
+    def _query(s: Session) -> list[dict]:
+        rows = s.execute(
+            select(JobPosting).where(JobPosting.job_id.in_(job_ids))
+        ).scalars().all()
+        return [
+            {
+                "job_id": r.job_id,
+                "job_title": r.job_title,
+                "company_name": r.company_name,
+                "location_city": r.location_city,
+                "location_country": r.location_country,
+                "is_remote": bool(r.is_remote),
+                "apply_url": r.apply_url,
+            }
+            for r in rows
+        ]
+
+    if session is not None:
+        return _query(session)
+    with SessionLocal() as s:
+        return _query(s)
+
+
+# ---------------------------------------------------------------------------
 # Batch upsert (creates its own session)
 # ---------------------------------------------------------------------------
 
@@ -369,21 +404,25 @@ def upsert_jobs(jobs: list[NormalizedJob]) -> IngestStats:
     """
     Batch upsert. Creates its own DB session.
     Returns stats: inserted / updated_seen / marked_duplicate / rejected.
+
+    Cada job se envuelve en un savepoint (begin_nested) para que un fallo
+    individual no revierta el lote completo — crítico en workers Celery donde
+    reintentar la tarea completa sería costoso.
     """
     stats: IngestStats = {"inserted": 0, "updated_seen": 0, "marked_duplicate": 0, "rejected": 0}
 
     with SessionLocal() as session:
         for job in jobs:
             try:
-                _, action = upsert_job(session, job)
+                with session.begin_nested():  # SAVEPOINT por job
+                    _, action = upsert_job(session, job)
                 stats[action] = stats.get(action, 0) + 1
             except ValueError as exc:
-                print(f"  [SKIP] {job.job_id}: {exc}")
+                log.warning("Saltando %s: %s", job.job_id, exc)
                 stats["rejected"] += 1
             except Exception as exc:
-                print(f"  [ERROR] {job.job_id}: {exc}")
+                log.error("Error al persistir %s: %s", job.job_id, exc, exc_info=True)
                 stats["rejected"] += 1
-                session.rollback()
         session.commit()
 
     return stats

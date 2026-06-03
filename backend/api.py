@@ -15,12 +15,17 @@ from fastapi import FastAPI, HTTPException, Query, Request
 from pydantic import BaseModel
 
 from app.delivery.repository import get_recommendations, record_feedback
-from app.ingestion.repository import list_all_jobs, load_job
+from app.ingestion.repository import list_all_jobs, load_job, load_jobs_by_ids
+from app.pipeline import ingest_for_profile, recommend_for_profile
 from app.profiles.repository import delete_profile, list_profiles, load_profile, upsert_profile
 from app.schemas import StudentProfile
 
 app = FastAPI(title="JobSearcher API", version="0.1.0")
 
+
+# ---------------------------------------------------------------------------
+# Jobs
+# ---------------------------------------------------------------------------
 
 @app.get("/api/jobs")
 def jobs_list(
@@ -55,6 +60,10 @@ def job_detail(job_id: str):
         raise HTTPException(status_code=404, detail="Job not found")
     return job
 
+
+# ---------------------------------------------------------------------------
+# Profiles
+# ---------------------------------------------------------------------------
 
 @app.get("/api/profiles")
 def profiles_list():
@@ -97,13 +106,21 @@ def profile_delete(profile_id: str):
     return {"ok": True}
 
 
+# ---------------------------------------------------------------------------
+# Recommendations & feedback
+# ---------------------------------------------------------------------------
+
 @app.get("/api/recommendations/{profile_id}")
 def recommendations_list(profile_id: str, status: str | None = Query(None)):
     recs = get_recommendations(profile_id, status=status)
+    if not recs:
+        return []
+    job_ids = [r["job_id"] for r in recs]
+    jobs_map = {j["job_id"]: j for j in load_jobs_by_ids(job_ids)}
     enriched = []
     for r in recs:
-        job = load_job(r["job_id"])
         entry = dict(r)
+        job = jobs_map.get(r["job_id"])
         if job:
             entry["title"] = job["job_title"]
             entry["company"] = job["company_name"]
@@ -126,3 +143,29 @@ def post_feedback(rec_id: str, body: FeedbackBody):
     if not ok:
         raise HTTPException(status_code=404, detail="Recommendation not found")
     return {"ok": True}
+
+
+# ---------------------------------------------------------------------------
+# Pipeline triggers
+# Ejecutan el pipeline de forma síncrona por ahora.
+# Con Hermes: estos endpoints encolarán tareas y devolverán 202 + task_id.
+# ---------------------------------------------------------------------------
+
+@app.post("/api/ingest/{profile_id}", status_code=202)
+def trigger_ingest(profile_id: str, no_cache: bool = Query(False)):
+    """Lanza la ingesta para un perfil almacenado. Síncrono ahora; async con Hermes."""
+    profile_obj = load_profile(profile_id)
+    if profile_obj is None:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    stats = ingest_for_profile(dataclasses.asdict(profile_obj), use_cache=not no_cache)
+    return stats
+
+
+@app.post("/api/recommend/{profile_id}", status_code=202)
+def trigger_recommend(profile_id: str, top: int = Query(10)):
+    """Genera recomendaciones para un perfil. Síncrono ahora; async con Hermes."""
+    try:
+        payloads = recommend_for_profile(profile_id, top_n=top)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+    return {"count": len(payloads), "profile_id": profile_id}

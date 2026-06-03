@@ -2,6 +2,7 @@ from pathlib import Path
 
 from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
 
 from app.config import DATABASE_URL
 from app.db.models import Base
@@ -54,7 +55,11 @@ def create_indexes(engine) -> None:
 
 def build_engine(url: str):
     _ensure_data_dir(url)
-    eng = create_engine(url, connect_args={"check_same_thread": False})
+    # NullPool para SQLite: cada operación obtiene su propia conexión y la libera
+    # inmediatamente. Evita errores "database is locked" cuando múltiples workers
+    # Celery comparten el mismo proceso padre al hacer fork.
+    pool_kwargs = {"poolclass": NullPool} if "sqlite" in url else {}
+    eng = create_engine(url, connect_args={"check_same_thread": False}, **pool_kwargs)
 
     @event.listens_for(eng, "connect")
     def _set_pragmas(dbapi_connection, _):

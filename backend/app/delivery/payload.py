@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import hashlib
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Literal
 
 from app.schemas import NormalizedJob
 from app.scoring.scorer import JobMatch
+
+log = logging.getLogger(__name__)
 
 FeedbackStatus = Literal["recommended", "seen", "discarded", "applied", "needs_coach"]
 VALID_STATUSES: tuple[str, ...] = ("recommended", "seen", "discarded", "applied", "needs_coach")
@@ -69,7 +73,7 @@ def build_payload(
         generated_at = datetime.now(timezone.utc).isoformat()
 
     return RecommendationPayload(
-        rec_id=f"{profile_id}_{match.job_id}",
+        rec_id=hashlib.sha256(f"{profile_id}:{match.job_id}".encode()).hexdigest()[:24],
         profile_id=profile_id,
         generated_at=generated_at,
         job_id=match.job_id,
@@ -97,8 +101,10 @@ def build_recommendations(
 
     passing = [m for m in matches if m.hard_filters_passed][:top_n]
 
-    return [
-        build_payload(match, job_map[match.job_id], profile_id, generated_at)
-        for match in passing
-        if match.job_id in job_map
-    ]
+    payloads = []
+    for match in passing:
+        if match.job_id not in job_map:
+            log.warning("job_id '%s' no encontrado en job_map — omitiendo recomendación", match.job_id)
+            continue
+        payloads.append(build_payload(match, job_map[match.job_id], profile_id, generated_at))
+    return payloads

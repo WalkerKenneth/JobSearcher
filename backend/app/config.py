@@ -11,6 +11,8 @@ if _dotenv.exists():
 
 JSEARCH_API_KEY: str = os.environ.get("JSEARCH_API_KEY", "")
 SERPAPI_API_KEY: str = os.environ.get("SERPAPI_API_KEY", "")
+ANTHROPIC_API_KEY: str = os.environ.get("ANTHROPIC_API_KEY", "")
+REDIS_URL: str = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
 
 _default_db = str(Path(__file__).parent.parent / "data" / "jobs.db")
 DATABASE_URL: str = os.environ.get("DATABASE_URL", f"sqlite:///{_default_db}")

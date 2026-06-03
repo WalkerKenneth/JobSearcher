@@ -9,6 +9,7 @@ Coverage:
   - load_active_jobs integration with repository
 """
 
+import hashlib
 import json
 import pytest
 
@@ -164,7 +165,8 @@ class TestBuildPayload:
         match = make_match()
         p = build_payload(match, job, "val_001", "2026-05-25T10:00:00+00:00")
 
-        assert p.rec_id == "val_001_job_001"
+        expected_rec_id = hashlib.sha256("val_001:job_001".encode()).hexdigest()[:24]
+        assert p.rec_id == expected_rec_id
         assert p.profile_id == "val_001"
         assert p.job_id == "job_001"
         assert p.title == "Junior Frontend Developer"
